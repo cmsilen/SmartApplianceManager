@@ -6,7 +6,11 @@ https://github.com/AlessioSmn/HomeAppliancePowerManager
 
 # Authors
 Tesfaye 
+
 Lorenzo
+
 Alessio
+
 Carlo
+
 
