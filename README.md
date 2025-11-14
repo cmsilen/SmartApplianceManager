@@ -5,7 +5,7 @@ Project for **Software Systems Engineering** course at University of Pisa, MSc C
 https://github.com/AlessioSmn/HomeAppliancePowerManager
 
 # Authors
-Tesfaye 
+(Tesfaye)[https://github.com/LijTesfaye]
 
 Lorenzo
 
