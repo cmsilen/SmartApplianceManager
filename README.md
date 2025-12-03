@@ -9,7 +9,7 @@ https://github.com/AlessioSmn/HomeAppliancePowerManager
 
 [Lorenzo](https://github.com/lorenzo-vezzani)
 
-Alessio
+[Alessio](https://github.com/AlessioSmn)
 
 [Carlo](https://github.com/cmsilen)
 
