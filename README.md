@@ -7,10 +7,10 @@ https://github.com/AlessioSmn/HomeAppliancePowerManager
 # Authors
 [Tesfaye](https://github.com/LijTesfaye)
 
-Lorenzo
+[Lorenzo](https://github.com/lorenzo-vezzani)
 
-Alessio
+[Alessio](https://github.com/AlessioSmn)
 
-Carlo
+[Carlo](https://github.com/cmsilen)
 
 
