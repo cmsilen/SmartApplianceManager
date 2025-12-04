@@ -26,6 +26,8 @@ class CoverageReport:
             "mean_occupancy"
         ]
 
+        # TODO scale single plots, since 220v and 3 persons make plots unbalnced
+
         # Initialize sums
         feature_sums = {f: 0 for f in features}
         n = len(dataset)

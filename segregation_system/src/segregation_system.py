@@ -6,6 +6,7 @@ from segregation_system.src.json_io import JsonIO
 from segregation_system.src.prepared_session_db_manager import PreparedSessionStorage
 from segregation_system.src.balancing_report import BalancingReport
 from segregation_system.src.coverage_report import CoverageReport
+from segregation_system.src.learning_sets import LearningSetsGenerator
 
 
 class SegregationSystem:
@@ -16,6 +17,7 @@ class SegregationSystem:
         self.prepared_session_storage = PreparedSessionStorage()
         self.balancing_report = BalancingReport()
         self.coverage_report = CoverageReport()
+        self.learning_sets = LearningSetsGenerator()
 
     def import_cfg(self, file_path):
         try:
@@ -47,7 +49,6 @@ class SegregationSystem:
         print(f"[SEGREGATION SYSTEM] Configuration loaded")
 
         current_state = self.read_state()
-        print(current_state)
 
         jsonIO = JsonIO.get_instance()
         listener = Thread(target=jsonIO.listener,
@@ -111,6 +112,16 @@ class SegregationSystem:
                 self.write_state("LEARNING")
                 current_state = "LEARNING"
 
-                exit(0)
+                continue
 
-            # todo elif current_state == "LEARNING":
+            elif current_state == "LEARNING":
+                dataset = self.prepared_session_storage.get_all_sessions()
+
+                print(f"[SEGREGATION SYSTEM] Learning sets generated.")
+                learning_sets = self.learning_sets.generate_learning_sets(dataset)
+
+                print(learning_sets)
+
+                print(f"[SEGREGATION SYSTEM] Learning state terminated. Store state is starting")
+
+                exit(0)
