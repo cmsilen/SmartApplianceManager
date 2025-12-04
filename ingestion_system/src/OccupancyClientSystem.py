@@ -17,5 +17,5 @@ class OccupancyClientSystem:
         return {
             "uuid": uuid,
             "timestamp": datetime.datetime.now(),
-            "people_number": row["people_number"]
+            "people_number": row["occupancy"]
         }
