@@ -1,3 +1,4 @@
+import os
 import plotly.graph_objects as go
 
 
@@ -67,6 +68,6 @@ class CoverageReport:
 
         self.fig = fig
 
-    def show_coverage_report(self, output_file="coverage_report.png"):
+    def show_coverage_report(self, output_file="~/coverage_report.png"):
+        output_file = os.path.expanduser(output_file)
         self.fig.write_image(output_file)
-        print(f"[INFO] Coverage report saved as '{output_file}'")

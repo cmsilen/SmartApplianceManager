@@ -7,7 +7,7 @@ class PreparedSessionStorage:
 
     def __init__(self):
         self.prepared_session_counter = 0
-        db_path = os.path.join(os.path.abspath('.'), 'data', 'segregation.db')
+        db_path = os.path.expanduser('~/segregation_db.db')
         try:
             self._conn = sqlite3.connect(db_path)
         except sqlite3.Error as e:

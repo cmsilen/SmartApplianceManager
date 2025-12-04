@@ -3,7 +3,7 @@
   "toleranceInterval": 5,
   "sessionNumber": 10,
   "service_flag": false,
-  "db": "segregation_system_db",
+  "db": "segregation_db",
   "preparation_system":
   {
     "ip": "127.0.0.1",

@@ -1,5 +1,5 @@
+import os
 import plotly.graph_objects as go
-
 
 class BalancingReport:
 
@@ -65,5 +65,6 @@ class BalancingReport:
         # Save as PNG
         self.fig = fig
 
-    def show_balancing_report(self,  output_file="balancing_report.png"):
+    def show_balancing_report(self, output_file="~/balancing_report.png"):
+        output_file = os.path.expanduser(output_file)
         self.fig.write_image(output_file)

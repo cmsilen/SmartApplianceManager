@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from threading import Thread
 from segregation_system.src.json_io import JsonIO
@@ -25,12 +26,14 @@ class SegregationSystem:
             print(f"Error: file {file_path} is not in JSON format.")
 
     def read_state(self):
-        with open("../state.txt") as f:
+        state_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.txt")
+        with open(state_path, "r") as f:
             state = f.read()
             return state
 
     def write_state(self, state):
-        with open("../state.txt", "w") as f:
+        state_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.txt")
+        with open(state_path, "w") as f:
             f.write(state)
 
     def run(self):
@@ -76,9 +79,11 @@ class SegregationSystem:
 
                 dataset = self.prepared_session_storage.get_all_sessions()
 
+                print(f"[SEGREGATION SYSTEM] Balancing report generated.")
                 self.balancing_report.generate_balancing_report(dataset,
                                                                 self.segregation_system_config['toleranceInterval'])
 
+                print(f"[SEGREGATION SYSTEM] Balancing report exported in balancing_report.png.")
                 self.balancing_report.show_balancing_report()
 
                 print(f"[SEGREGATION SYSTEM] Balancing stage terminated. Coverage stage starting")
@@ -90,8 +95,10 @@ class SegregationSystem:
 
                 dataset = self.prepared_session_storage.get_all_sessions()
 
+                print(f"[SEGREGATION SYSTEM] Coverage report generated.")
                 self.coverage_report.generate_coverage_report(dataset)
 
+                print(f"[SEGREGATION SYSTEM] Coverage report exported in coverage_report.png.")
                 self.coverage_report.show_coverage_report()
 
                 print(f"[SEGREGATION SYSTEM] Coverage stage terminated. Learning stage starting")
