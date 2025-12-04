@@ -4,7 +4,7 @@ import pandas as pd
 
 class OccupancyClientSystem:
     def __init__(self, data_path):
-        self.df = pd.read_csv(data_path, sep="\t")
+        self.df = pd.read_csv(data_path, sep=",")
         self.index = 0
         self.uuid = 0
 
