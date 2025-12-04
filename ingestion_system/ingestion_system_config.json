@@ -9,21 +9,6 @@
     "ip": "25.18.213.203",
     "port": 5002
   },
-  "segregation_system":
-  {
-    "ip": "127.0.0.1",
-    "port": 5003
-  },
-  "development_system":
-  {
-    "ip": "127.0.0.1",
-    "port": 5004
-  },
-  "production_system":
-  {
-    "ip": "127.0.0.1",
-    "port": 5005
-  },
   "evaluation_system":
   {
     "ip": "127.0.0.1",
@@ -33,5 +18,8 @@
   {
     "ip": "127.0.0.1",
     "port": 5007
-  }
+  },
+  "currentPhase": "production",
+  "minimumRecords": 10,
+  "missingSamplesThreshold": 3
 }

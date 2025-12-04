@@ -2,7 +2,7 @@ import datetime
 
 import pandas as pd
 
-class EnvironmentalClientSystem:
+class ExpertClientSystem:
     def __init__(self, data_path):
         self.df = pd.read_csv(data_path, sep=",")
         self.index = 0
