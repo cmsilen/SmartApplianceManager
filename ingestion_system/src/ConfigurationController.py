@@ -20,10 +20,13 @@ class ConfigurationController:
         return self.current_config["evaluation_system"]
 
     def get_current_phase(self):
-        return self.current_config["phase"]
+        return self.current_config["currentPhase"]
 
     def get_minimum_records(self):
-        return self.current_config["minimum_records"]
+        return self.current_config["minimumRecords"]
 
     def get_missing_samples_threshold(self):
-        return self.current_config["missing_samples_threshold"]
+        return self.current_config["missingSamplesThreshold"]
+
+    def get_records_collection_period_seconds(self):
+        return self.current_config["recordsCollectionPeriodSeconds"]
