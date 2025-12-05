@@ -3,6 +3,9 @@ import random
 import time
 import pandas as pd
 
+from ..records.ExpertRecord import ExpertRecord
+
+
 class ExpertClientSystem:
     def __init__(self, data_path):
         self.df = pd.read_csv(data_path, sep=",")
@@ -18,8 +21,13 @@ class ExpertClientSystem:
         # simulate delay
         delay = random.uniform(1, 5)
         time.sleep(delay)
-        return {
+        data = {
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),
             "label": row["label"]
         }
+        record = ExpertRecord()
+        record.uuid = data["uuid"]
+        record.timestamp = data["timestamp"]
+        record.label = data["label"]
+        return record

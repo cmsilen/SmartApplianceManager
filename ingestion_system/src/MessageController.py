@@ -3,6 +3,8 @@ from threading import Thread
 from flask import Flask, request
 from requests import post, exceptions
 
+from ingestion_system.src.messages import Message
+
 
 class MessageController:
     _instance = None
@@ -41,11 +43,11 @@ class MessageController:
         # save received message into queue
         self._received_json_queue.put(received_json)
 
-    def send(self, ip, port, endpoint, data):
-        url = f'http://{ip}:{port}/' + endpoint
+    def send(self, message: Message, endpoint):
+        url = f'http://{message.dst_address}:{message.dst_port}/' + endpoint
         response = None
         try:
-            response = post(url, json=data, timeout=10.0)
+            response = post(url, json=message.to_dict(), timeout=10.0)
         except exceptions.RequestException:
             print("Endpoint system unreachable")
             return False

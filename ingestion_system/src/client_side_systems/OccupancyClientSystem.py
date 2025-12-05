@@ -3,7 +3,10 @@ import random
 import time
 import pandas as pd
 
-class EnvironmentalClientSystem:
+from ..records.OccupancyRecord import OccupancyRecord
+
+
+class OccupancyClientSystem:
     def __init__(self, data_path):
         self.df = pd.read_csv(data_path, sep=",")
         self.index = 0
@@ -16,14 +19,18 @@ class EnvironmentalClientSystem:
         uuid = self.uuid
         self.uuid += 1
         # simulate delay
-        delay = random.uniform(0, 2)
+        delay = random.uniform(1, 5)
         time.sleep(delay)
-        return self.simulate_missing_samples({
+        data = self.simulate_missing_samples({
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),
-            "temperature": row["temperature"],
-            "humidity": row["humidity"]
+            "people_number": row["occupancy"]
         })
+        record = OccupancyRecord()
+        record.uuid = data["uuid"]
+        record.timestamp = data["timestamp"]
+        record.people_number = data["people_number"]
+        return record
 
     def simulate_missing_samples(self, record):
         missing_probability = 0.05

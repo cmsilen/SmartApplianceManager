@@ -17,3 +17,21 @@ class RawSession:
         self.environmental_records = None
         self.occupancy_records = None
         self.expert_record = None
+
+    def to_dict(self):
+        ret = {
+            "UUID": self.uuid,
+            "applianceRecords": [],
+            "environmentalRecords": [],
+            "occupancyRecords": [],
+            "expertRecord": self.expert_record.to_dict()
+        }
+
+        for record in self.appliance_records:
+            ret["applianceRecords"].append(record.to_dict())
+        for record in self.environmental_records:
+            ret["environmentalRecords"].append(record.to_dict())
+        for record in self.occupancy_records:
+            ret["occupancyRecords"].append(record.to_dict())
+
+        return ret

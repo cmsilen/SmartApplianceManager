@@ -3,13 +3,16 @@ import time
 import random
 import pandas as pd
 
+from ..records.ApplianceRecord import ApplianceRecord
+
+
 class ApplianceClientSystem:
     def __init__(self, data_path):
         self.df = pd.read_csv(data_path, sep=",")
         self.index = 0
         self.uuid = 0
 
-    def get_record(self):
+    def get_record(self) -> ApplianceRecord:
         row = self.df.iloc[self.index]
 
         uuid = self.uuid
@@ -18,7 +21,7 @@ class ApplianceClientSystem:
         # simulate delay
         delay = random.uniform(1, 5)
         time.sleep(delay)
-        return self.simulate_missing_samples({
+        data = self.simulate_missing_samples({
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),
             "current": row["current"],
@@ -26,6 +29,14 @@ class ApplianceClientSystem:
             "temperature": row["temperature"],
             "appliance_type": row["appliance_type"]
         })
+        record = ApplianceRecord()
+        record.uuid = data["uuid"]
+        record.timestamp = data["timestamp"]
+        record.current = data["current"]
+        record.voltage = data["voltage"]
+        record.temperature = data["temperature"]
+        record.appliance_type = data["appliance_type"]
+        return record
 
     def simulate_missing_samples(self, record):
         missing_probability = 0.05
