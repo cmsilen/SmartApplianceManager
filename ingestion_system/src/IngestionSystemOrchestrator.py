@@ -3,16 +3,23 @@ from pathlib import Path
 import time
 from threading import Thread
 
-from ingestion_system.src.ApplianceClientSystem import ApplianceClientSystem
+from ingestion_system.src.RawSession import RawSession
+from ingestion_system.src.client_side_systems.ApplianceClientSystem import ApplianceClientSystem
 from ingestion_system.src.ConfigurationController import ConfigurationController
-from ingestion_system.src.EnvironmentalClientSystem import EnvironmentalClientSystem
-from ingestion_system.src.ExpertClientSystem import ExpertClientSystem
+from ingestion_system.src.client_side_systems.EnvironmentalClientSystem import EnvironmentalClientSystem
+from ingestion_system.src.client_side_systems.ExpertClientSystem import ExpertClientSystem
 from ingestion_system.src.MessageController import MessageController
-from ingestion_system.src.OccupancyClientSystem import OccupancyClientSystem
+from ingestion_system.src.client_side_systems.OccupancyClientSystem import OccupancyClientSystem
 from ingestion_system.src.RecordsBuffer import RecordsBuffer
+from ingestion_system.src.messages.ExpertRecordMessage import ExpertRecordMessage
+from ingestion_system.src.messages.RawSessionMessage import RawSessionMessage
+from ingestion_system.src.records.ExpertRecord import ExpertRecord
 
 
 class IngestionSystemOrchestrator:
+    configuration_controller: ConfigurationController
+    records_buffer: RecordsBuffer
+    next_raw_session_uuid: int
 
     def __init__(self):
         self.configuration_controller = None
@@ -61,21 +68,24 @@ class IngestionSystemOrchestrator:
             while True:
                 # records collection from client side systems
                 self.records_buffer.store_record(appliance_client.get_record(), "appliance")
-                print("[INGESTION SYSTEM] Received Appliance record")
+                print("[INFO] Received Appliance record")
                 self.records_buffer.store_record(environmental_client.get_record(), "environmental")
-                print("[INGESTION SYSTEM] Received Environmental record")
+                print("[INFO] Received Environmental record")
                 self.records_buffer.store_record(occupancy_client.get_record(), "occupancy")
-                print("[INGESTION SYSTEM] Received Occupancy record")
+                print("[INFO] Received Occupancy record")
                 if self.records_buffer.get_records_count() >= threshold:
                     break
                 time.sleep(period)
 
-            label_record = None
+            label_record = ExpertRecord()
             if current_phase == "development" or current_phase == "evaluation":
-                label_record = expert_client.get_record()
-                print("[INGESTION SYSTEM] Received Label from expert")
+                rec = expert_client.get_record()
+                label_record.uuid = rec.uuid
+                label_record.timestamp = rec.timestamp
+                label_record.label = rec.label
+                print("[INFO] Received Label from expert")
 
-            print("[INGESTION SYSTEM] Creating raw session...")
+            print("[INFO] Creating raw session...")
             # create raw session
             raw_session = self.create_raw_session(label_record)
 
@@ -87,43 +97,51 @@ class IngestionSystemOrchestrator:
 
             # raw session valid?
             if missing_samples >= threshold:
+                print("[ERR] Invalid raw session, discarding...")
                 continue
 
             # is evaluation phase?
-            if current_phase == "evaluation":
-                result = message_controller.send(evaluation_system_address["ip"], evaluation_system_address["port"], "???", label_record)
+            if current_phase == "evaluation" and label_record is not None:
+                label_msg = ExpertRecordMessage()
+                label_msg.dst_address = evaluation_system_address["ip"]
+                label_msg.dst_port = evaluation_system_address["port"]
+                label_msg.expert_record = label_record
+                result = message_controller.send(label_msg, "receive/expert")
                 if result:
-                    print("[INGESTION SYSTEM] Sent label to evaluation system")
+                    print("[INFO] Sent label to evaluation system")
                 else:
-                    print("[INGESTION SYSTEM] Failed to send label to evaluation system")
+                    print("[ERR] Failed to send label to evaluation system")
 
-            print(json.dumps(raw_session, indent=4))
-            result = message_controller.send(preparation_system_address["ip"], preparation_system_address["port"], "???", raw_session)
+            #print(json.dumps(raw_session, indent=4))
+            raw_session_msg = RawSessionMessage()
+            raw_session_msg.dst_address = preparation_system_address["ip"]
+            raw_session_msg.dst_port = preparation_system_address["port"]
+            raw_session_msg.raw_session = raw_session
+            result = message_controller.send(raw_session_msg, "???")
             if result:
-                print("[INGESTION SYSTEM] Sent Raw session to preparation system")
+                print("[INFO] Sent Raw session to preparation system")
             else:
-                print("[INGESTION SYSTEM] Failed to send Raw session to preparation system")
+                print("[ERR] Failed to send Raw session to preparation system")
 
 
-    def create_raw_session(self, label=None):
+    def create_raw_session(self, label: ExpertRecord) -> RawSession:
         records = self.records_buffer.get_records()
         uuid = self.next_raw_session_uuid
         self.next_raw_session_uuid += 1
 
-        raw_session = {
-            "uuid": uuid,
-            "applianceRecords": records["appliance"],
-            "environmentalRecords": records["environmental"],
-            "occupancyRecords": records["occupancy"],
-            "expertRecord": label
-        }
+        raw_session = RawSession()
+        raw_session.uuid = uuid
+        raw_session.appliance_records = records["appliance"]
+        raw_session.environmental_records = records["environmental"]
+        raw_session.occupancy_records = records["occupancy"]
+        raw_session.expert_record = label
         return raw_session
 
-    def mark_missing_samples(self, raw_session):
+    def mark_missing_samples(self, raw_session: RawSession) -> int:
         missing_samples = 0
-        attributes = ["applianceRecords", "environmentalRecords", "occupancyRecords"]
-        for key in attributes:
-            for sample in raw_session[key]:
+        records_types = [raw_session.appliance_records, raw_session.environmental_records, raw_session.occupancy_records]
+        for records in records_types:
+            for sample in records:
                 if sample is None:
                     missing_samples += 1
 
