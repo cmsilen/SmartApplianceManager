@@ -1,0 +1,20 @@
+{
+  "ingestion_system":
+  {
+    "ip": "127.0.0.1",
+    "port": 5002
+  },
+  "classification_system":
+  {
+    "ip": "127.0.0.1",
+    "port": 5005
+  },
+  "evaluation_system": {
+    "ip": "127.0.0.1",
+    "port": 5006
+  },
+  "messaging_system": {
+    "ip": "127.0.0.1",
+    "port": 5007
+  }
+}
