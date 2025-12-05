@@ -18,9 +18,18 @@ class EnvironmentalClientSystem:
         # simulate delay
         delay = random.uniform(0, 2)
         time.sleep(delay)
-        return {
+        return self.simulate_missing_samples({
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),
             "temperature": row["temperature"],
             "humidity": row["humidity"]
-        }
+        })
+
+    def simulate_missing_samples(self, record):
+        missing_probability = 0.05
+        for key in record:
+            if key == "uuid" or key == "timestamp":
+                continue
+            if random.uniform(0, 1) <= missing_probability:
+                record[key] = None
+        return record

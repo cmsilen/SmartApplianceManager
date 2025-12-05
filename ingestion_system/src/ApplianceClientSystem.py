@@ -18,11 +18,20 @@ class ApplianceClientSystem:
         # simulate delay
         delay = random.uniform(1, 5)
         time.sleep(delay)
-        return {
+        return self.simulate_missing_samples({
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),
             "current": row["current"],
             "voltage": row["voltage"],
             "temperature": row["temperature"],
             "appliance_type": row["appliance_type"]
-        }
+        })
+
+    def simulate_missing_samples(self, record):
+        missing_probability = 0.05
+        for key in record:
+            if key == "uuid" or key == "timestamp":
+                continue
+            if random.uniform(0, 1) <= missing_probability:
+                record[key] = None
+        return record
