@@ -1,5 +1,5 @@
 import sys
-from evaluation_system.src.evaluation_system import EvaluationSystem
+from evaluation_system.controller.evaluation_system import EvaluationSystem
 
 if __name__ == '__main__':
 
