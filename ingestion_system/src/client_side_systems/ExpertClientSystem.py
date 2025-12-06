@@ -7,12 +7,24 @@ from ..records.ExpertRecord import ExpertRecord
 
 
 class ExpertClientSystem:
-    def __init__(self, data_path):
+    """
+    Simulates the Expert Client Side System
+    """
+
+    def __init__(self, data_path: str):
+        """
+        Constructor
+        :param data_path: str
+        """
         self.df = pd.read_csv(data_path, sep=",")
         self.index = 0
         self.uuid = 0
 
     def get_record(self) -> ExpertRecord:
+        """
+        Get the next expert record
+        :return: ExpertRecord
+        """
         row = self.df.iloc[self.index]
 
         self.index = (self.index + 1) % len(self.df)

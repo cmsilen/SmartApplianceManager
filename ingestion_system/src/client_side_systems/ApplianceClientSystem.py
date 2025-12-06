@@ -7,12 +7,24 @@ from ..records.ApplianceRecord import ApplianceRecord
 
 
 class ApplianceClientSystem:
-    def __init__(self, data_path):
+    """
+    Simulates the Appliance Client Side System
+    """
+
+    def __init__(self, data_path: str):
+        """
+        Constructor
+        :param data_path: str
+        """
         self.df = pd.read_csv(data_path, sep=",")
         self.index = 0
         self.uuid = 0
 
     def get_record(self) -> ApplianceRecord:
+        """
+        Get the next record
+        :return: ApplianceRecord
+        """
         row = self.df.iloc[self.index]
 
         uuid = self.uuid
@@ -38,7 +50,12 @@ class ApplianceClientSystem:
         record.appliance_type = data["appliance_type"]
         return record
 
-    def simulate_missing_samples(self, record) -> dict:
+    def simulate_missing_samples(self, record: dict) -> dict:
+        """
+        Simulate the missing samples randomly
+        :param record:
+        :return:
+        """
         missing_probability = 0.05
         for key in record:
             if key == "uuid" or key == "timestamp":
