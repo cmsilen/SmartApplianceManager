@@ -19,13 +19,16 @@
     "ip": "127.0.0.1",
     "port": 5007
   },
-  "currentPhase": "evaluation",
-  "minimumRecords": 5,
-  "missingSamplesThreshold": 3,
-  "recordsCollectionPeriodSeconds": 1,
-  "preparationSystemEndpoint": "???",
+  "currentPhase": "production",
+  "minimumRecords": 20,
+  "missingSamplesThreshold": 5,
+  "recordsCollectionPeriodSeconds": 0,
+  "preparationSystemEndpoint": "raw_session",
   "evaluationSystemEndpoint": "label/expert",
-  "productionSessions": 20,
-  "evaluationSessions": 20,
-  "test": true
+  "productionSessions": 20000000,
+  "evaluationSessions": 20000000,
+  "test": {
+    "isTest": true,
+    "rawSessions": 10000
+  }
 }

@@ -32,7 +32,7 @@ class OccupancyClientSystem:
         self.uuid += 1
         # simulate delay
         delay = random.uniform(1, 5)
-        time.sleep(delay)
+        #time.sleep(delay)
         data = self.simulate_missing_samples({
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),

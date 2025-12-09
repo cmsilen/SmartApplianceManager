@@ -32,7 +32,7 @@ class ExpertClientSystem:
         self.uuid += 1
         # simulate delay
         delay = random.uniform(1, 5)
-        time.sleep(delay)
+        #time.sleep(delay)
         data = {
             "uuid": uuid,
             "timestamp": datetime.datetime.now().isoformat(),

@@ -105,17 +105,20 @@ class IngestionSystemOrchestrator:
         production_sessions = self.configuration_controller.get_production_sessions()
         evaluation_sessions = self.configuration_controller.get_evaluation_sessions()
 
-        is_test = self.configuration_controller.is_test()
+        test = self.configuration_controller.is_test()
+        is_test = test["isTest"]
+        n_sessions = test["rawSessions"]
+        time.sleep(1)
 
         while True:
             while True:
                 # records collection from client side systems
                 self.records_buffer.store_record(appliance_client.get_record())
-                print("[INFO] Received Appliance record")
+                #print("[INFO] Received Appliance record")
                 self.records_buffer.store_record(environmental_client.get_record())
-                print("[INFO] Received Environmental record")
+                #print("[INFO] Received Environmental record")
                 self.records_buffer.store_record(occupancy_client.get_record())
-                print("[INFO] Received Occupancy record")
+                #print("[INFO] Received Occupancy record")
                 if self.records_buffer.get_records_count() >= min_records:
                     break
                 time.sleep(period)

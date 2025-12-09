@@ -1,9 +1,11 @@
+import datetime
 import queue
 from threading import Thread
 from flask import Flask, request
 from requests import post, exceptions
 
 from ingestion_system.src.messages import Message
+from ingestion_system.src.messages.RawSessionMessage import RawSessionMessage
 
 
 class MessageController:
@@ -18,6 +20,7 @@ class MessageController:
         self._app = Flask(__name__)
         # a thread-safe queue to buffer the received json message
         self._received_json_queue = queue.Queue()
+        self.test_data = {}
 
     @staticmethod
     def get_instance():
@@ -71,6 +74,8 @@ class MessageController:
             print(f'Sending Error: {error_message}')
             return False
 
+        if isinstance(message, RawSessionMessage):
+            self.test_data[message.raw_session.uuid] = datetime.datetime.now()
         return True
 
 
@@ -91,7 +96,16 @@ def home():
 
 @app.post("/test_stop")
 def test_stop():
-    print("[TEST] response arrived")
-    receive_thread = Thread(target=MessageController.get_instance().send_to_main)
-    receive_thread.start()
+    msg = request.get_json()
+    test_data = MessageController.get_instance().test_data
+    end = datetime.datetime.now()
+    if msg["uuid"] not in test_data:
+        print("[ERR] invalid uuid received")
+        return {"error": "invalid uuid"}, 400
+
+    start = test_data[msg["uuid"]]
+    del test_data[msg["uuid"]]
+    difference = end - start
+    with open("test.csv", "a") as f:
+        f.write(f"{start.isoformat()};{end.isoformat()};{difference.total_seconds()}\n")
     return {}, 200
