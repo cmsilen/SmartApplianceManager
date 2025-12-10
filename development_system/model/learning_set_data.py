@@ -64,7 +64,7 @@ class LearningDataSet:
                 LearningDataSet._instance[phase]["data"]["mean_occupancy"].append(f[5])
                 LearningDataSet._instance[phase]["labels"].append(lbl)
 
-        print("[INFO] External dataset successfully converted to internal numerical format.")
+        print("[INFO] External dataset successfully set.")
 
     @staticmethod
     def get_data(category):
