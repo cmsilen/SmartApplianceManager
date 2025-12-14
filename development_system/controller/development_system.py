@@ -162,10 +162,10 @@ class DevelopmentSystemOrchestrator:
                 try:
                     if automated:
                         self.winner_uuid = "NN50"
-                        CommunicationManager.get_instance().send_classifier_joblib(self.winner_uuid)
+                        CommunicationManager.get_instance().send_classifier_joblib_automated(self.winner_uuid)
                         self.update_stage("waiting")
                     else:
-                        CommunicationManager.get_instance().send_classifier_joblib(self.winner_uuid)
+                        CommunicationManager.get_instance().send_classifier_joblib_non_automated(self.winner_uuid)
                         self.update_stage("waiting")
                 except Exception as e:
                     print(f"[ERROR] Failed to send classifier: {str(e)}")
