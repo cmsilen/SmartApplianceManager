@@ -69,6 +69,6 @@ class LearningDataSet:
     @staticmethod
     def get_data(category):
         if category not in LearningDataSet._instance:
-            raise KeyError(f"[ERROR] '{category}' data not found. Did you call set_from_external_format()?")
+            raise KeyError(f"[ERROR] '{category}' data not found. Did you call set_data()?")
 
         return LearningDataSet._instance[category]
