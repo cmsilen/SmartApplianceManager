@@ -1,5 +1,5 @@
 {
     "startup_mode": "waiting",
     "ongoing_validation": false,
-    "stage": "waiting"
+    "stage": "send_classifier"
 }
