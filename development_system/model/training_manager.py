@@ -47,8 +47,7 @@ class TrainingManager:
         self._hidden_layer_sizes = tuple([math.ceil(average_neurons / (2 ** i)) for i in range(average_layers)])
         print(f'Initially the Training Network has this hidden layer sizes: { self._hidden_layer_sizes }')
         #Update the Configuration
-        new_config = SMARTClassifierConfig( iterations=self._num_iterations,
-                                            hidden_layer_sizes=self._hidden_layer_sizes)
+        new_config = SMARTClassifierConfig(hidden_layer_sizes=self._hidden_layer_sizes)
         self._smart_classifier.update_classifier_config(new_config)
 
     def train_classifier(self):
