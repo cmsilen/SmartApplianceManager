@@ -42,13 +42,10 @@ class SmartClassifier:
         Update internal config and, if needed, update the JSON config file and
         reconfigure the underlying classifier.
         """
-        previous_config = self._classifier_config
-
-        iterations_changed = (previous_config is not None
-                              and previous_config.num_iterations != new_config.num_iterations
-                              )
-
-        if previous_config is None or iterations_changed:
+        iteration_changed = self._classifier_config.num_iterations != new_config.num_iterations
+        if (( self._classifier_config is not  None
+                    and iteration_changed )
+                or self._classifier_config is None ):
             print("[DEBUG] Update SMART classifier config file")
             JsonReadWrite.update_json_file(
                 self.config_path,
