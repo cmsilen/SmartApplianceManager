@@ -51,13 +51,13 @@ class Cleaner:
         if "occupancyRecords" in corrected:
             values = []
             for rec in corrected["occupancyRecords"]:
-                v = rec.get("people_number")
+                v = rec.get("occupancy")
                 values.append(np.nan if v is None else float(v))
 
             interpolated = _interpolate_list_of_values(values)
 
             for rec, new_val in zip(corrected["occupancyRecords"], interpolated):
-                rec["people_number"] = new_val
+                rec["occupancy"] = new_val
 
         return corrected
 
@@ -105,7 +105,7 @@ class Cleaner:
             process_records(
                 corrected["occupancyRecords"],
                 {
-                    "people_number": "occupancy"
+                    "occupancy": "occupancy"
                 }
             )
 

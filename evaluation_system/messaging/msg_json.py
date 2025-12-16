@@ -4,7 +4,7 @@ import json
 import queue
 from datetime import datetime
 from flask import Flask, request
-from model.label_source import LabelSource
+from evaluation_system.model.label_source import LabelSource
 
 
 class MessagingJsonController:
@@ -25,14 +25,14 @@ class MessagingJsonController:
             MessagingJsonController._instance = MessagingJsonController()
         return MessagingJsonController._instance
 
-    def listener(self, ip, port):
+    def listener(self, ip_addr, port):
         """ Listener """
         # Disable the default logging
         # log = logging.getLogger('werkzeug')
         # log.setLevel(logging.ERROR)
 
         # execute the listening server, for each message received, it will be handled by a thread
-        self._app.run(host=ip, port=port, debug=False, threaded=True)
+        self._app.run(host=ip_addr, port=port, debug=False, threaded=True)
 
     def get_app(self):
         """ Get app reference """
@@ -64,8 +64,8 @@ class MessagingJsonController:
 
         filepath = os.path.join(messages_dir, filename)
 
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        with open(filepath, "w", encoding="utf-8") as msg_sys_msg:
+            json.dump(data, msg_sys_msg, indent=4)
 
 app = MessagingJsonController.get_instance().get_app()
 

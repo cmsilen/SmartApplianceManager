@@ -14,8 +14,8 @@ class TrainingController:
 
     def train_model(self):
         print("[INFO] Model training started.")
-        self._training_manager.train_classifier()
         print("[INFO] Model training completed.")
+        return self._training_manager.train_classifier()
 
     def  generate_calibration_report(self):
         self._training_manager.generate_learning_report()

@@ -43,6 +43,7 @@ class TrainingManager:
         # grab the average hyper params
         average_layers = int((hidden_layer_size_range[1] + hidden_layer_size_range[0]) / 2)
         average_neurons = int((hidden_neuron_range[1] + hidden_neuron_range[0]) / 2)
+        average_neurons = int((hidden_neuron_range[1] + hidden_neuron_range[0]) / 2)
 
         self._hidden_layer_sizes = tuple([math.ceil(average_neurons / (2 ** i)) for i in range(average_layers)])
         print(f'Initially the Training Network has this hidden layer sizes: { self._hidden_layer_sizes }')
@@ -53,6 +54,7 @@ class TrainingManager:
     def train_classifier(self):
         self._train_data = LearningDataSet().get_data("training")
         self._smart_classifier.train_model(self._train_data["data"], self._train_data["labels"])
+        return self._train_data
 
     def get_classifier_losses(self):
         return self._smart_classifier.grab_training_losses()

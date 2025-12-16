@@ -6,26 +6,25 @@
   },
   "ingestion_system":
   {
-    "ip": "127.0.0.1",
+    "ip": "25.18.213.203",
     "port": 5002
   },
   "evaluation_system":
   {
-    "ip": "127.0.0.1",
+    "ip": "25.16.136.221",
     "port": 5006
   },
-  "messaging_system":
-  {
-    "ip": "127.0.0.1",
-    "port": 5007
-  },
-  "currentPhase": "evaluation",
-  "minimumRecords": 20,
+  "currentPhase": "production",
+  "minimumRecords": 10,
   "missingSamplesThreshold": 5,
-  "recordsCollectionPeriodSeconds": 1,
+  "recordsCollectionPeriodSeconds": 0.0,
   "preparationSystemEndpoint": "raw_session",
   "evaluationSystemEndpoint": "label/expert",
-  "productionSessions": 1000000,
-  "evaluationSessions": 1,
-  "test": true
+  "productionSessions": 20000000,
+  "evaluationSessions": 20000000,
+  "test": {
+    "isTest": true,
+    "rawSessions": 500,
+    "developedClassifiers": 100
+  }
 }

@@ -5,10 +5,10 @@ import sqlite3
 import threading
 from typing import List
 
-from model.label import Label
-from model.label_pair import LabelPair
-from model.label_source import LabelSource
-from model.label_type import LabelType
+from evaluation_system.model.label import Label
+from evaluation_system.model.label_pair import LabelPair
+from evaluation_system.model.label_source import LabelSource
+from evaluation_system.model.label_type import LabelType
 
 
 class DatabaseManager:
@@ -23,8 +23,8 @@ class DatabaseManager:
         # Connect with SQLite
         try:
             self._conn = sqlite3.connect(db_path, check_same_thread=False)
-        except sqlite3.Error as e:
-            print(f'[EVALUATION SYSTEM] SQL Connection Error [{e}]')
+        except sqlite3.Error as sql_exc:
+            print(f'[EVALUATION SYSTEM] SQL Connection Error [{sql_exc}]')
             sys.exit(1)
 
     def _run_query(self, query: str, params: tuple = None):
@@ -39,8 +39,8 @@ class DatabaseManager:
 
                 self._conn.commit()
                 return cursor
-            except sqlite3.Error as e:
-                print(f'[EVALUATION SYSTEM] Sqlite Execution Error [{e}]')
+            except sqlite3.Error as sql_exc:
+                print(f'[EVALUATION SYSTEM] Sqlite Execution Error [{sql_exc}]')
                 return None
 
     # Table management
@@ -73,16 +73,16 @@ class DatabaseManager:
         rows = cursor.fetchall()
 
         label_pairs = []
-        for UUID, label_expert, label_classifier in rows:
+        for uuid, label_expert, label_classifier in rows:
             expert_label = Label(
-                UUID=UUID,
+                uuid=uuid,
                 label_type=LabelType.from_string(label_expert)
             )
             classifier_label = Label(
-                UUID=UUID,
+                uuid=uuid,
                 label_type=LabelType.from_string(label_classifier)
             )
-            pair = LabelPair(UUID, expert_label, classifier_label)
+            pair = LabelPair(uuid, expert_label, classifier_label)
             label_pairs.append(pair)
 
         return label_pairs
@@ -123,7 +123,7 @@ class DatabaseManager:
                 ON CONFLICT(UUID) DO UPDATE SET
                     label_classifier = COALESCE(labels.label_classifier, excluded.label_classifier);
             """
-            label_data = (label.get_UUID(), label_type)
+            label_data = (label.get_uuid(), label_type)
 
         elif label_source == LabelSource.EXPERT:
             query = """
@@ -132,7 +132,7 @@ class DatabaseManager:
                 ON CONFLICT(UUID) DO UPDATE SET
                     label_expert = COALESCE(labels.label_expert, excluded.label_expert);
             """
-            label_data = (label.get_UUID(), label_type)
+            label_data = (label.get_uuid(), label_type)
 
         else:
             raise ValueError("Invalid LabelSource")
@@ -157,11 +157,11 @@ class DatabaseManager:
         if not label_pairs:
             return
 
-        # List of UUIDs
-        UUIDs = [pair.get_UUID() for pair in label_pairs]
+        # List of uuids
+        uuids = [pair.get_uuid() for pair in label_pairs]
 
         # values array
-        placeholders = ",".join(["?"] * len(UUIDs))
+        placeholders = ",".join(["?"] * len(uuids))
         query = f"DELETE FROM labels WHERE UUID IN ({placeholders});"
 
-        self._run_query(query, tuple(UUIDs))
+        self._run_query(query, tuple(uuids))

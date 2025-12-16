@@ -1,10 +1,13 @@
+import datetime
 import queue
-from datetime import datetime
+import sys
+import threading
 from threading import Thread
 from flask import Flask, request
 from requests import post, exceptions
 
 from ingestion_system.src.messages import Message
+from ingestion_system.src.messages.RawSessionMessage import RawSessionMessage
 
 
 class MessageController:
@@ -19,12 +22,12 @@ class MessageController:
         self._app = Flask(__name__)
         # a thread-safe queue to buffer the received json message
         self._received_json_queue = queue.Queue()
-
-        self.is_test = False
+        self.test_data = {}
+        self.test_data_lock = threading.Lock()
         self.test_counter = 0
-        self.test_max = None
-        self.test_start = None
-        self.test_uuids = set()
+        self.total_test = 0
+        self.cumulative_response_time = 0
+        self.first_timestamp = None
 
     @staticmethod
     def get_instance():
@@ -78,10 +81,12 @@ class MessageController:
             print(f'Sending Error: {error_message}')
             return False
 
+        if isinstance(message, RawSessionMessage):
+            with self.test_data_lock:
+                self.test_data[message.raw_session.uuid] = datetime.datetime.now()
         return True
 
 
-msg_ctrl = MessageController.get_instance()
 app = MessageController.get_instance().get_app()
 
 
@@ -97,35 +102,51 @@ def start_app():
 def home():
     return "Ingestion System online!"
 
+last = 0
+test_resp_times = []
 @app.post("/test_stop")
 def test_stop():
-    info = request.json
-    uuid = info.get("uuid")
+    msg = request.get_json()
+    end = datetime.datetime.now()
+    message_controller = MessageController.get_instance()
+    test_data = message_controller.test_data
+    counter = 0
+    uuid = 0
+    with message_controller.test_data_lock:
+        uuid = msg['uuid']
+        if uuid not in test_data:
+            print("[ERR] invalid uuid received")
+            return {"error": "invalid uuid"}, 400
 
-    if msg_ctrl.is_test:
-        # Increment counter
-        msg_ctrl.test_counter += 1
-        print(f"done: {uuid}, total = {msg_ctrl.test_counter}")
+        start = test_data[uuid]
+        del test_data[uuid]
+        message_controller.test_counter -= 1
+        counter = message_controller.test_counter
 
-        msg_ctrl.test_uuids.add(uuid)
+    global last
+    if uuid - last > 1:
+        print(f"ERR last: {last}, received {uuid}")
+        exit(1)
+    last = uuid
+    difference = end - start
+    message_controller.cumulative_response_time += difference.total_seconds()
+    global test_resp_times
+    test_resp_times.append(difference.total_seconds())
+    if counter <= 0:
+        with open("test.csv", "a") as f:
+            for i in range(len(test_resp_times)):
+                f.write(f"{i + 1}; {test_resp_times[i]}\n")
+    return {}, 200
 
-        # If threshold reached
-        if msg_ctrl.test_counter == msg_ctrl.test_max:
-
-            start = msg_ctrl.test_start
-            end = datetime.now()
-            diff = end - start
-
-            with open("test.csv", "a") as f:
-                f.write(f"{start.isoformat()},{end.isoformat()},{diff.total_seconds()},{msg_ctrl.test_max}\n")
-            with open("test_semicolon.csv", "a") as f:
-                f.write(f"{start.isoformat()};{end.isoformat()};{diff.total_seconds()};{msg_ctrl.test_max}\n")
-
-
-            print(f"\n ============= TIME DIFF: {diff.total_seconds()} sec =============\n")
-
-            # Unlock main
-            receive_thread = Thread(target=MessageController.get_instance().send_to_main)
-            receive_thread.start()
-
+@app.post("/dev_stop")
+def dev_stop():
+    message_controller = MessageController.get_instance()
+    if message_controller.test_counter >= message_controller.total_test:
+        return {}, 200
+    print(f"[TEST] deployed classificator {message_controller.test_counter}")
+    message_controller.test_counter += 1
+    resp = datetime.datetime.now() - message_controller.first_timestamp
+    resp = resp.total_seconds()
+    with open("dev_test.csv", "a") as f:
+        f.write(f"{message_controller.test_counter}; {resp}\n")
     return {}, 200

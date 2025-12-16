@@ -14,6 +14,24 @@ class PreparedSessionStorage:
             print(f'[SEGREGATION SYSTEM] SQL Connection Error [{e}]')
             sys.exit(1)
 
+        # init database
+        cursor = self._conn.cursor()
+
+        # prepared session table
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS prepared_session (
+                    uuid INTEGER,
+                    mean_current FLOAT,
+                    mean_voltage FLOAT,
+                    mean_temperature FLOAT,
+                    mean_external_temperature FLOAT,
+                    mean_external_humidity FLOAT,
+                    mean_occupancy FLOAT,
+                    label TEXT
+                )
+        """)
+        self._conn.commit()
+
     def get_session_number(self):
         return self.prepared_session_counter
 
@@ -23,15 +41,11 @@ class PreparedSessionStorage:
     def reset_counter(self):
         self.prepared_session_counter = 0
 
-    # TODO validation method for prepared sessions
-
     def store_prepared_session(self, prepared_session):
-
-        # TODO Validate before storing session
 
         query = """
                 INSERT INTO prepared_session (
-                    session_id,
+                    uuid,
                     mean_current,
                     mean_voltage,
                     mean_temperature,
@@ -42,15 +56,29 @@ class PreparedSessionStorage:
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """
 
+
+        values = (
+            prepared_session["UUID"],
+            prepared_session["mean_current"],
+            prepared_session["mean_voltage"],
+            prepared_session["mean_temperature"],
+            prepared_session["mean_external_temperature"],
+            prepared_session["mean_external_humidity"],
+            prepared_session["mean_occupancy"],
+            prepared_session["label"]
+        )
+
         try:
             cur = self._conn.cursor()
-            cur.execute(query, prepared_session)
+            cur.execute(query, values)
             self._conn.commit()
         except Exception as e:
-            print(f"[SEGREGATION SYSTEM] Error: unable to add session (session_id: {prepared_session['session_id']}: {e}")
-            return []
+            print(f"[SEGREGATION SYSTEM] Error: unable to add session "
+                  f"(uuid: {prepared_session.get('UUID', 'UNKNOWN')}): {e}")
+            return False
 
-        print(f"[SEGREGATION SYSTEM] Stored new prepared session (session_id: {prepared_session['session_id']}")
+        print(f"[SEGREGATION SYSTEM] Stored new prepared session "
+              f"(uuid: {prepared_session.get('UUID')})")
 
         self.increment_session_counter()
 
@@ -60,7 +88,7 @@ class PreparedSessionStorage:
         try:
             cur = self._conn.cursor()
             cur.execute("""
-                SELECT session_id, mean_current, mean_voltage, mean_temperature,
+                SELECT uuid, mean_current, mean_voltage, mean_temperature,
                        mean_external_temperature, mean_external_humidity, mean_occupancy, label
                 FROM prepared_session
             """)

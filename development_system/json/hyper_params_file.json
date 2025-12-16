@@ -1,15 +1,15 @@
 {
     "hidden_layer_range": [
-        1,
-        6
+        4,
+        4
     ],
     "hidden_layer_step": 1,
     "neuron_range": [
-        4,
-        128
+        64,
+        64
     ],
     "neuron_step": 2,
     "overfitting_tolerance": 0.25,
     "generalization_tolerance": 0.3,
-    "num_iterations": 50
+    "num_iterations": 15
 }

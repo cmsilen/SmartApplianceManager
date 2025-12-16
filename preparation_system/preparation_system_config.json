@@ -4,7 +4,7 @@
     "port": 5001
   },
   "segregation_system": {
-    "ip": "127.0.0.1",
+    "ip": "25.11.231.246",
     "port": 5003
   },
   "production_system": {
@@ -17,12 +17,12 @@
       "max": 250
     },
     "temperature": {
-      "min": 0,
-      "max": 60
+      "min": 20,
+      "max": 100
     },
     "ex_temperature": {
       "min": -20,
-      "max": 80
+      "max": 50
     },
     "current": {
       "min": 0,
@@ -34,8 +34,8 @@
     },
     "occupancy": {
       "min": 0,
-      "max": 7
+      "max": 10
     }
   },
-  "development_phase": false
+  "development_phase": true
 }

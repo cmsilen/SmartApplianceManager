@@ -1,6 +1,6 @@
 """ Module for defining labels """
 import jsonschema
-from model.label_type import LabelType
+from evaluation_system.model.label_type import LabelType
 
 
 class Label:
@@ -27,29 +27,29 @@ class Label:
         # Schema validation
         try:
             jsonschema.validate(instance=data, schema=Label.RECEIVED_LABEL_SCHEMA)
-        except jsonschema.exceptions.ValidationError as e:
+        except jsonschema.exceptions.ValidationError as exc:
             raise jsonschema.exceptions.ValidationError(
                 f"Invalid Label JSON \
                 \n Schema:   {Label.RECEIVED_LABEL_SCHEMA};\
                 \n Received: {data}"
-            ) from e
+            ) from exc
 
         # Mapping case-insensitive
         label_type_enum = LabelType.from_string(data["label"])
 
         return Label(
-            UUID=data["UUID"],
+            uuid=data["UUID"],
             label_type=label_type_enum
         )
 
-    def __init__(self, UUID, label_type):
-        self._UUID = UUID
+    def __init__(self, uuid, label_type):
+        self._uuid = uuid
         self._label_type = label_type
 
     def get_label_type(self):
         """ Returns the label type """
         return self._label_type
 
-    def get_UUID(self):
+    def get_uuid(self):
         """ Returns the UUID """
-        return self._UUID
+        return self._uuid

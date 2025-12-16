@@ -6,7 +6,7 @@ class ValidationController:
         self._validation_manager = ValidationManager()
 
     def get_classifiers(self):
-        self._validation_manager.get_candidate_classifiers()
+        return self._validation_manager.get_candidate_classifiers()
 
     def get_the_winner_classifier(self, uuid):
         self._validation_manager.winner_classifier(uuid)

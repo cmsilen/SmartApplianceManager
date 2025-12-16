@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 from pathlib import Path
+import random
 from threading import Thread
 from datetime import datetime
 from segregation_system.src.json_io import JsonIO
@@ -62,7 +63,7 @@ class SegregationSystem:
     def run(self):
         self.segregation_system_config = self.segregation_system_configurator.import_cfg()
 
-        logging.info("yConfiguration loaded")
+        logging.info("Configuration loaded")
 
         jsonIO = JsonIO.get_instance()
         listener = Thread(
@@ -73,7 +74,10 @@ class SegregationSystem:
         listener.setDaemon(True)
         listener.start()
 
+        self.write_state("STORE")
         current_state = self.read_state()
+
+        self.prepared_session_storage.clear_dataset()
 
         while True:
 
@@ -115,12 +119,11 @@ class SegregationSystem:
                 self.balancing_report.show_balancing_report()
                 logging.info("Balancing report displayed to user")
 
-                print('ciao')
-
-                print("[SEGREGATION SYSTEM] Does the balancing report meet your needs? (y/n): ", end="")
-                answer = sys.stdin.readline().strip().lower()
-                is_satisfactory = (answer == "y")
-                logging.info(f"Balancing report satisfactory: {is_satisfactory}")
+                # print("[SEGREGATION SYSTEM] Does the balancing report meet your needs? (y/n): ", end="")
+                # answer = sys.stdin.readline().strip().lower()
+                # is_satisfactory = (answer == "y")
+                # logging.info(f"Balancing report satisfactory: {is_satisfactory}")
+                is_satisfactory = random.random() < 0.7
 
                 if not is_satisfactory:
                     print("[SEGREGATION SYSTEM] Please describe what you need in order to balance:")
@@ -128,6 +131,7 @@ class SegregationSystem:
                     logging.info(f"User requirements for balancing: {user_requirements}")
                     current_state = "STORE"
                     self.write_state("STORE")
+                    self.prepared_session_storage.clear_dataset()
                     logging.info("Balancing finished → Store state starting")
                     continue
 
@@ -147,10 +151,11 @@ class SegregationSystem:
                 self.coverage_report.show_coverage_report()
                 logging.info("Coverage report displayed to user")
 
-                print("[SEGREGATION SYSTEM] Does the coverage report meet your needs? (y/n): ", end="")
-                answer = sys.stdin.readline().strip().lower()
-                is_satisfactory = (answer == "y")
-                logging.info(f"Coverage report satisfactory: {is_satisfactory}")
+                # print("[SEGREGATION SYSTEM] Does the coverage report meet your needs? (y/n): ", end="")
+                # answer = sys.stdin.readline().strip().lower()
+                # is_satisfactory = (answer == "y")
+                # logging.info(f"Coverage report satisfactory: {is_satisfactory}")
+                is_satisfactory = random.random() < 0.7
 
                 if not is_satisfactory:
                     print("[SEGREGATION SYSTEM] Please describe what you need in order to cover all data:")
@@ -158,6 +163,7 @@ class SegregationSystem:
                     logging.info(f"User requirements for balancing: {user_requirements}")
                     current_state = "STORE"
                     self.write_state("STORE")
+                    self.prepared_session_storage.clear_dataset()
                     logging.info("Coverage finished → Store state starting")
                     continue
 
@@ -178,11 +184,16 @@ class SegregationSystem:
                                            self.segregation_system_config['development_system']['port'],
                                            "/learning_sets",
                                            learning_sets)
+
+                print(
+                    f"{self.segregation_system_config['development_system']['ip']}:{self.segregation_system_config['development_system']['port']}")
+
                 logging.info(f"Learning sent to Development System")
 
-                self.write_state("BALANCING")
-                current_state = "BALANCING"
-                exit(0)
+                self.prepared_session_storage.clear_dataset()
+                self.prepared_session_storage.reset_counter()
+                self.write_state("STORE")
+                current_state = "STORE"
 
                 logging.info("Learning finished → Store state starting")
 

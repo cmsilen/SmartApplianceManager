@@ -4,12 +4,12 @@ import random
 from threading import Thread
 import jsonschema
 
-from model.label import Label
-from messaging.msg_json import MessagingJsonController
-from repository.database_manager import DatabaseManager
-from reporting.evaluation_report_controller import EvaluationReportController
-from errorlog.error_logger import ErrorLogger
-from config.configuration_controller import ConfigurationController
+from evaluation_system.model.label import Label
+from evaluation_system.messaging.msg_json import MessagingJsonController
+from evaluation_system.repository.database_manager import DatabaseManager
+from evaluation_system.reporting.evaluation_report_controller import EvaluationReportController
+from evaluation_system.errorlog.error_logger import ErrorLogger
+from evaluation_system.config.configuration_controller import ConfigurationController
 
 
 class EvaluationSystem:
@@ -37,15 +37,15 @@ class EvaluationSystem:
         self._database_manager.create_tables(clear_if_exists = True)
         print("Tables created")
 
-    def setup_listener(self, ip, port):
+    def setup_listener(self, ip_add, port):
         """ Setup listener thread """
 
         # Reference to msg_controller
         self._msg_controller = MessagingJsonController.get_instance()
 
         # Start listener on specified ip:port
-        listener = Thread(target=self._msg_controller.listener, args=(ip, port))
-        listener.setDaemon(True)
+        listener = Thread(target=self._msg_controller.listener, args=(ip_add, port))
+        listener.daemon = True
         listener.start()
 
     def setup_evaluation_report_controller(self, file_name = "evaluation_system_config.json"):
@@ -74,7 +74,7 @@ class EvaluationSystem:
 
         # Setup listener
         self.setup_listener(
-            ip=self._conf.get_addresses()["evaluation_system"]["ip"],
+            ip_add=self._conf.get_addresses()["evaluation_system"]["ip"],
             port=self._conf.get_addresses()["evaluation_system"]["port"],
         )
 
@@ -101,7 +101,7 @@ class EvaluationSystem:
                 print("[EVALUATION SYSTEM]: " +
                       f"LABEL [{str(label.get_label_type()):<12}" +
                       f" | {str(label_source):<12} " +
-                      f"| {label.get_UUID()}]")
+                      f"| {label.get_uuid()}]")
 
                 # Add to database
                 self._database_manager.store_label(label, label_source)
@@ -110,6 +110,12 @@ class EvaluationSystem:
                 if self._eval_report_controller.is_evaluation_possible():
                     print("==========================")
                     print("Starting evaluation report")
+
+                    # Log eventual unpaired labels
+                    tot = self._database_manager.get_count_all()
+                    full = self._database_manager.get_count_pairs()
+                    if full < tot:
+                        self._error_logger.log(f"Unpaired labels present: {tot-full}")
 
                     # Generate evaluation report
                     self._eval_report_controller.generate_report()
@@ -140,10 +146,10 @@ class EvaluationSystem:
 
                     self._eval_report_controller.close_report()
 
-            except jsonschema.exceptions.ValidationError as v:
-                print(f"Validation error: {v}")
-                self._error_logger.log(f"json validation error: {v}")
+            except jsonschema.exceptions.ValidationError as val_exc:
+                print(f"Validation error: {val_exc}")
+                self._error_logger.log(f"json validation error: {val_exc}")
 
-            except Exception as e:
-                print(f"General error: {e}")
-                self._error_logger.log(f"General error: {e}")
+            except Exception as exc:
+                print(f"General error: {exc}")
+                self._error_logger.log(f"General error: {exc}")

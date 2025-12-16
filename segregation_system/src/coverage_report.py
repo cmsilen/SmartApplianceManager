@@ -18,14 +18,13 @@ class CoverageReport:
             "mean_occupancy"
         ]
 
-        # Ranges definiti manualmente (domini naturali delle feature)
         feature_ranges = {
-            "mean_current": (4, 25),
-            "mean_voltage": (190, 230),
-            "mean_temperature": (20, 70),
-            "mean_ex_temperature": (0, 80),
-            "mean_ex_humidity": (0, 100),
-            "mean_occupancy": (0, 1)
+            "mean_current": (0, 20),
+            "mean_voltage": (200, 250),
+            "mean_temperature": (20, 100),
+            "mean_ex_temperature": (-20, 50),
+            "mean_ex_humidity": (0, 1),
+            "mean_occupancy": (0, 10)
         }
 
         def normalize(value, min_v, max_v):

@@ -1,0 +1,105 @@
+
+
+======================
+NEW WORKING SESSION
+[2025-12-09 11:00:31] [PROD/EVAL] json validation error: Invalid PreparedSession JSON
+Schema:                 {'type': 'object', 'properties': {'UUID': {'type': ['string', 'number']}, 'mean_current': {'type': 'number'}, 'mean_voltage': {'type': 'number'}, 'mean_temperature': {'type': 'number'}, 'mean_external_temperature': {'type': 'number'}, 'mean_external_humidity': {'type': 'number'}, 'mean_occupancy': {'type': 'number'}, 'session_id': {'type': 'string'}, 'label': {'type': 'string'}}, 'required': ['UUID', 'mean_current', 'mean_voltage', 'mean_temperature', 'mean_external_temperature', 'mean_external_humidity', 'mean_occupancy'], 'additionalProperties': False};
+received: <classifier.classifier.Classifier object at 0x760cf0e7f8e0>
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+
+
+======================
+NEW WORKING SESSION
+[2025-12-09 15:52:33] [PROD/EVAL] json validation error: Invalid PreparedSession JSON
+Schema:                 {'type': 'object', 'properties': {'UUID': {'type': ['string', 'number']}, 'mean_current': {'type': 'number'}, 'mean_voltage': {'type': 'number'}, 'mean_temperature': {'type': 'number'}, 'mean_external_temperature': {'type': 'number'}, 'mean_external_humidity': {'type': 'number'}, 'mean_occupancy': {'type': 'number'}, 'session_id': {'type': 'string'}, 'label': {'type': 'string'}}, 'required': ['UUID', 'mean_current', 'mean_voltage', 'mean_temperature', 'mean_external_temperature', 'mean_external_humidity', 'mean_occupancy'], 'additionalProperties': False};
+received: <classifier.classifier.Classifier object at 0x7dda5a445640>
+[2025-12-09 15:53:45] [PROD/EVAL] json validation error: Invalid PreparedSession JSON
+Schema:                 {'type': 'object', 'properties': {'UUID': {'type': ['string', 'number']}, 'mean_current': {'type': 'number'}, 'mean_voltage': {'type': 'number'}, 'mean_temperature': {'type': 'number'}, 'mean_external_temperature': {'type': 'number'}, 'mean_external_humidity': {'type': 'number'}, 'mean_occupancy': {'type': 'number'}, 'session_id': {'type': 'string'}, 'label': {'type': 'string'}}, 'required': ['UUID', 'mean_current', 'mean_voltage', 'mean_temperature', 'mean_external_temperature', 'mean_external_humidity', 'mean_occupancy'], 'additionalProperties': False};
+received: <classifier.classifier.Classifier object at 0x7dda5a4454c0>
+
+
+======================
+NEW WORKING SESSION

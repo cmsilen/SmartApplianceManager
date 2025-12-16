@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import Flask, request
 from requests import post, exceptions
 
-from classifier.classifier import Classifier
+from production_system.classifier.classifier import Classifier
 
 
 class MessagingJsonController:
@@ -27,14 +27,14 @@ class MessagingJsonController:
             MessagingJsonController._instance = MessagingJsonController()
         return MessagingJsonController._instance
 
-    def listener(self, ip, port):
+    def listener(self, ip_add, port):
         """ Listener """
         # Disable the default logging
         # log = logging.getLogger('werkzeug')
         # log.setLevel(logging.ERROR)
 
         # execute the listening server, for each message received, it will be handled by a thread
-        self._app.run(host=ip, port=port, debug=False, threaded=True)
+        self._app.run(host=ip_add, port=port, debug=False, threaded=True)
 
     def get_app(self):
         """ Get app reference """
@@ -65,11 +65,15 @@ class MessagingJsonController:
             return False
 
         if response.status_code != 200:
-            res = response.json()
-            error_message = 'unknown'
-            if 'error' in res:
-                error_message = res['error']
-            print(f'Sending Error: {error_message}')
+            try:
+                res = response.json()
+                error_message = 'unknown'
+                if 'error' in res:
+                    error_message = res['error']
+                print(f'Sending Error: {error_message}')
+            except ValueError:
+                print(f'Non-JSON response: {response.text.strip()}')
+
             return False
         return True
 
@@ -86,8 +90,8 @@ class MessagingJsonController:
 
         filepath = os.path.join(messages_dir, filename)
 
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        with open(filepath, "w", encoding="utf-8") as msg_sys_msg:
+            json.dump(data, msg_sys_msg, indent=4)
 
 app = MessagingJsonController.get_instance().get_app()
 

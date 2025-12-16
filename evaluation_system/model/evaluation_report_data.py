@@ -1,6 +1,6 @@
 """ Module for defining the evaluation report data """
 from typing import List
-from model.label_pair import LabelPair
+from evaluation_system.model.label_pair import LabelPair
 
 class EvaluationReportData:
     """Class for handling the evaluation report data"""
@@ -19,7 +19,7 @@ class EvaluationReportData:
         return {
             "label_pairs": [
                 {
-                    "UUID": p.get_UUID(),
+                    "UUID": p.get_uuid(),
                     "label_expert": str(p.get_label_expert()),
                     "label_classifier": str(p.get_label_classifier())
                 }

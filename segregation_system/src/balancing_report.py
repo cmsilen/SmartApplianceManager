@@ -1,6 +1,7 @@
 import os
 import plotly.graph_objects as go
 
+
 class BalancingReport:
 
     def __init__(self):

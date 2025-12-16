@@ -2,6 +2,7 @@
 import io
 import os
 import joblib
+import pandas as pd
 
 from production_system.model.label import Label
 from production_system.model.label_type import LabelType
@@ -11,6 +12,14 @@ from production_system.model.prepared_session import PreparedSession
 class Classifier:
     """ Class for managing the classifier """
 
+    cols = [
+        "mean_current",
+        "mean_voltage",
+        "mean_temperature",
+        "mean_external_temperature",
+        "mean_external_humidity",
+        "mean_occupancy",
+    ]
 
     def __init__(self):
         self.filename = None
@@ -20,10 +29,9 @@ class Classifier:
         """ Loads the classifier from a file """
         self.filename = filename
 
-        # TODO
-        #  uncomment.
-        #  Tieni salvato un modello random, anche solo per test
-        # self.model = joblib.load(filename)
+        working_dir = os.getcwd()
+        full_path = os.path.join(working_dir, "classifier",filename)
+        self.model = joblib.load(full_path)
 
     def load_from_bytes(self, raw_bytes: bytes):
         """ Loads the classifier from bytes """
@@ -37,29 +45,24 @@ class Classifier:
             return
 
         working_dir = os.getcwd()
-        full_path = os.path.join(working_dir, filename)
+        full_path = os.path.join(working_dir, "classifier", filename)
 
         joblib.dump(self.model, full_path)
 
         self.filename = full_path
 
 
-    def infer(self, prepared_session):
+    def infer(self, prepared_session: PreparedSession):
         """Run inference."""
-        # TODO delete
-        #  metti la prediciton vera
-        return Label(
-            UUID = prepared_session.get_UUID(),
-            label_type = LabelType.from_string("none")
-        )
 
         if self.model is None:
             raise RuntimeError("Classifier model not loaded")
 
         features = prepared_session.to_tuple()
-        pred = self.model.predict([features])[0]
+        data_frame = pd.DataFrame([features], columns=Classifier.cols)
+        prediction = self.model.predict(data_frame)[0]
 
         return Label(
-            UUID=prepared_session.get_UUID(),
-            label_type=LabelType.from_string(str(pred))
+            uuid=prepared_session.get_uuid(),
+            label_type=LabelType.from_string(str(prediction))
         )

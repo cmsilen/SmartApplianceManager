@@ -53,8 +53,6 @@ class IngestionSystemOrchestrator:
         self.next_raw_session_uuid = 0
         self.sessions_completed = 0
         self.test_results = []
-        self._test_counter = 0
-        self._test_max = 0
 
     def import_cfg(self, file_path):
         self.configuration_controller = ConfigurationController(file_path)
@@ -107,54 +105,48 @@ class IngestionSystemOrchestrator:
         production_sessions = self.configuration_controller.get_production_sessions()
         evaluation_sessions = self.configuration_controller.get_evaluation_sessions()
 
-        is_test = self.configuration_controller.is_test()
-
-        iterations = 0
-        if is_test:
-            print("\n\n======================= TESTING =======================")
-            MAX = input("\n\nHOW MANY CONSECUTIVE RAW SESSIONS?")
-            message_controller.is_test = True
+        test = self.configuration_controller.is_test()
+        is_test = test["isTest"]
+        n_sessions = test["rawSessions"]
+        n_dev = test["developedClassifiers"]
+        test_counter = 0
+        if is_test and current_phase == "production":
+            # production test
+            message_controller.test_counter = n_sessions
+            message_controller.total_test = n_sessions
+        elif is_test and current_phase == "development":
+            # development test
             message_controller.test_counter = 0
-            message_controller.test_max = int(MAX)
-            message_controller.test_start = datetime.datetime.now()
+            message_controller.total_test = n_dev
+            message_controller.first_timestamp = datetime.datetime.now()
+        time.sleep(1)
 
         while True:
-            if iterations >= int(message_controller.test_max * 1.05):
-                print(f"\n ============= TEST ENDED ({iterations} iterations) =============")
-                uuids = message_controller.test_uuids
-                if uuids:
-                    first = 0
-                    last = max(uuids)
-                    missing = sorted(set(range(first, last + 1)) - uuids)
-                    print(f"UUIDs received so far: {sorted(uuids)}")
-                    print(f"Missing UUIDs: {missing}")
-                else:
-                    print("No UUIDs received yet.")
-                print("Waiting for all messages to complete...")
-                message_controller.receive()
-                print("Bye bye")
-                break
-            iterations += 1
+            if message_controller.test_counter >= message_controller.total_test and is_test and current_phase == "development":
+                print("[TEST] TEST COMPLETED")
+                exit(0)
             while True:
                 # records collection from client side systems
                 self.records_buffer.store_record(appliance_client.get_record())
-                # print("[INFO] Received Appliance record")
+                #print("[INFO] Received Appliance record")
                 self.records_buffer.store_record(environmental_client.get_record())
-                # print("[INFO] Received Environmental record")
+                #print("[INFO] Received Environmental record")
                 self.records_buffer.store_record(occupancy_client.get_record())
-                # print("[INFO] Received Occupancy record")
+                #print("[INFO] Received Occupancy record")
                 if self.records_buffer.get_records_count() >= min_records:
                     break
-                if not is_test:
-                    time.sleep(period)
+                time.sleep(period)
 
             label_record = ExpertRecord()
-            # if current_phase == "development" or current_phase == "evaluation":
-            rec = expert_client.get_record()
-            label_record.uuid = rec.uuid
-            label_record.timestamp = rec.timestamp
-            label_record.label = rec.label
-            # print("[INFO] Received Label from expert")
+            if current_phase == "development" or current_phase == "evaluation":
+                rec = expert_client.get_record()
+                label_record.uuid = self.next_raw_session_uuid
+                label_record.timestamp = rec.timestamp
+                label_record.label = rec.label
+                # print("[INFO] Received Label from expert")
+                if label_record.label is None:
+                    print("[ERR] No label received, discarding.")
+                    continue
 
             # print("[INFO] Creating raw session...")
             # create raw session
@@ -178,9 +170,7 @@ class IngestionSystemOrchestrator:
                 label_msg.dst_port = evaluation_system_address["port"]
                 label_msg.expert_record = label_record
                 result = message_controller.send(label_msg, evaluation_system_endpoint)
-                if result:
-                    print("[INFO] Sent label to evaluation system")
-                else:
+                if not result:
                     print("[ERR] Failed to send label to evaluation system")
 
             # print(json.dumps(raw_session.to_dict(), indent=4))
@@ -192,6 +182,16 @@ class IngestionSystemOrchestrator:
             if result:
                 # print("[INFO] Sent Raw session to preparation system")
                 self.sessions_completed += 1
+                test_counter += 1
+                if test_counter >= n_sessions and is_test and current_phase == "production":
+                    # wait for production test end
+                    end_counter = 99999
+                    while end_counter > 0:
+                        time.sleep(1)
+                        with message_controller.test_data_lock:
+                            end_counter = message_controller.test_counter
+                    print("[TEST] TEST COMPLETED")
+                    exit(0)
 
                 if self.sessions_completed >= production_sessions and current_phase == "production":
                     current_phase = "evaluation"
@@ -238,3 +238,12 @@ class IngestionSystemOrchestrator:
                     missing_samples += 1
 
         return missing_samples
+
+
+    def handle_test(self, message_controller):
+        test_start = datetime.datetime.now()
+        message_controller.receive()
+        test_end = datetime.datetime.now()
+        difference = test_end - test_start
+        with open("test.csv", "a") as f:
+            f.write(f"{test_start.isoformat()},{test_end.isoformat()},{difference.total_seconds()}\n")

@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import List
 from pathlib import Path
 
-from model.label_pair import LabelPair
-from model.evaluation_report_data import EvaluationReportData
-from repository.database_manager import DatabaseManager
+from evaluation_system.model.label_pair import LabelPair
+from evaluation_system.model.evaluation_report_data import EvaluationReportData
+from evaluation_system.repository.database_manager import DatabaseManager
 
 
 def calculate_errors(label_pairs: List[LabelPair]) -> int:
@@ -53,9 +53,6 @@ class EvaluationReportController:
         self._reports_directory = Path(__file__).parent / "evaluation_reports"
 
         self.load_config(json_config)
-
-        # todo delete
-        print(f"TODO delete\n{self._evaluation_config_json}")
 
     def load_config(self, json_config):
         """ Load configuration file """
@@ -105,9 +102,9 @@ class EvaluationReportController:
 
         # Consecutive errors
         ce_max = self._evaluation_config_json["max_consecutive_errors"]
-        ce = calculate_consecutive_errors(current_pairs)
+        cons_err = calculate_consecutive_errors(current_pairs)
         evaluation_report_data.set_consecutive_errors_max(ce_max)
-        evaluation_report_data.set_consecutive_errors(ce)
+        evaluation_report_data.set_consecutive_errors(cons_err)
         evaluation_report_data.set_consecutive_errors_threshold_satisfied(err <= ce_max)
 
         self._current_report = evaluation_report_data
@@ -126,8 +123,8 @@ class EvaluationReportController:
         filename = f"report_{timestamp}.json"
         path = os.path.join(self._reports_directory, filename)
 
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(self._current_report.to_dict(), f, indent=4)
+        with open(path, "w", encoding="utf-8") as report:
+            json.dump(self._current_report.to_dict(), report, indent=4)
 
     def visualize_report(self):
         """ Visualize the evaluation report """
@@ -139,8 +136,8 @@ class EvaluationReportController:
         print("\n ====== Evaluation Report ======")
 
         print(" === Label Pairs: (expert / classifier )")
-        for p in data['label_pairs']:
-            print(f" - {p['label_expert']} / {p['label_classifier']}")
+        for pair in data['label_pairs']:
+            print(f" - {pair['label_expert']} / {pair['label_classifier']}")
 
         print(" === Total errors:")
         print(f" Actual:  {data['errors']}")

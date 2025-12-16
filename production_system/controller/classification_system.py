@@ -3,11 +3,11 @@
 from threading import Thread
 import jsonschema
 
-from config.configuration_controller import ConfigurationController
-from classifier.classifier import Classifier
-from messaging.msg_json import MessagingJsonController
-from model.prepared_session import PreparedSession
-from errorlog.error_logger import ErrorLogger
+from production_system.config.configuration_controller import ConfigurationController
+from production_system.classifier.classifier import Classifier
+from production_system.messaging.msg_json import MessagingJsonController
+from production_system.model.prepared_session import PreparedSession
+from production_system.errorlog.error_logger import ErrorLogger
 
 class ClassificationSystem:
     """ Main system class """
@@ -30,15 +30,15 @@ class ClassificationSystem:
         self._conf = ConfigurationController()
         self._conf.import_config()
 
-    def setup_listener(self, ip, port):
+    def setup_listener(self, ip_add, port):
         """ Setup listener thread """
 
         # Reference to msg_controller
         self._msg_controller = MessagingJsonController.get_instance()
 
         # Start listener on specified ip:port
-        listener = Thread(target=self._msg_controller.listener, args=(ip, port))
-        listener.setDaemon(True)
+        listener = Thread(target=self._msg_controller.listener, args=(ip_add, port))
+        listener.daemon = True
         listener.start()
 
     def setup_classifier(self):
@@ -64,7 +64,7 @@ class ClassificationSystem:
 
         # Setup listener
         self.setup_listener(
-            ip=self._conf.get_addresses()["classification_system"]["ip"],
+            ip_add=self._conf.get_addresses()["classification_system"]["ip"],
             port=self._conf.get_addresses()["classification_system"]["port"],
         )
 
@@ -73,7 +73,7 @@ class ClassificationSystem:
 
         if not self._conf.get_sys_params()["development_phase"]:
             self._session_counter = 0
-            self._current_session = self.PHASE_EVALUATION
+            self._current_session = self.PHASE_PRODUCTION
         else:
             self._session_counter = None
 
@@ -140,79 +140,85 @@ class ClassificationSystem:
                         MessagingJsonController.send_messaging_system(msg)
                     else:
                         print("(TEST) SENDING classifier TO INGESTION")
-                        ip = self._conf.get_addresses()["ingestion_system"]["ip"]
-                        port = self._conf.get_addresses()["ingestion_system"]["port"]
+                        ing_sys = self._conf.get_addresses()["ingestion_system"]
                         MessagingJsonController.send(
-                            self._conf.get_addresses()["ingestion_system"]["ip"],
-                            self._conf.get_addresses()["ingestion_system"]["port"],
-                            "/test_stop",
+                            ing_sys["ip"],
+                            ing_sys["port"],
+                            "/dev_stop",
                             msg
                         )
 
 
                     print("[CLASSIFICATION SYSTEM] Deployment completed")
 
-                except Exception as e:
-                    print(f"General error: {e}")
-                    self._error_logger.log(f"General error: {e}")
+                except Exception as gen_exc:
+                    print(f"General error: {gen_exc}")
+                    self._error_logger.log(f"General error: {gen_exc}")
 
             # Production / Evaluation phase
             else:
 
                 # Wait for prepared session
                 prepared_session_json = self._msg_controller.receive()
+                print(f"[CLASSIFICATION SYSTEM] \
+                Prep. session: uuid={prepared_session_json['UUID']}")
 
                 try:
                     # Validate schema and create object
                     prep_session = PreparedSession.from_json(prepared_session_json)
 
-                    print("[CLASSIFICATION SYSTEM] Prepared session received")
+                    print("[CLASSIFICATION SYSTEM] Prepared session accepted")
 
                     # Infer classifier
                     label = self._classifier.infer(prep_session)
-                    print("[CLASSIFICATION SYSTEM] Label calculated")
+                    print(f"[CLASSIFICATION SYSTEM] \
+                    Label calculated: {str(label.get_label_type())}")
 
                     # Differentiate between Production / Evaluation phase
 
                     # In evaluation phase send label to Evaluation System
                     if self._current_session == self.PHASE_EVALUATION:
                         # Send label
+                        eval_sys = self._conf.get_addresses()["evaluation_system"]
                         MessagingJsonController.send(
-                            self._conf.get_addresses()["evaluation_system"]["ip"],
-                            self._conf.get_addresses()["evaluation_system"]["port"],
+                            eval_sys["ip"],
+                            eval_sys["port"],
                             "/label/classifier",
                             label.to_dict()
                         )
 
                     # Always send to final client
                     if not self._test_service_flag:
+                        cli_sys = self._conf.get_addresses()["client_side_system"]
                         MessagingJsonController.send(
-                            self._conf.get_addresses()["client_side_system"]["ip"],
-                            self._conf.get_addresses()["client_side_system"]["port"],
+                            cli_sys["ip"],
+                            cli_sys["port"],
                             "/fault_risk",
                             label.to_dict()
                         )
                     else:
                         print(f"(TEST) SENDING TO INGESTION:\n{label.to_dict()}")
-                        ip = self._conf.get_addresses()["ingestion_system"]["ip"]
-                        port = self._conf.get_addresses()["ingestion_system"]["port"]
-                        msg = {'uuid': label.get_UUID()}
-                        print(f"TO [{ip}:{port}]: {msg}")
-                        MessagingJsonController.send(
-                            self._conf.get_addresses()["ingestion_system"]["ip"],
-                            self._conf.get_addresses()["ingestion_system"]["port"],
-                            "/test_stop",
-                            msg
-                        )
+                        ing_sys = self._conf.get_addresses()["ingestion_system"]
+                        msg = {'uuid': label.get_uuid()}
+
+                        try:
+                            MessagingJsonController.send(
+                                ing_sys["ip"],
+                                ing_sys["port"],
+                                "/test_stop",
+                                msg
+                            )
+                        except Exception as send_exc:
+                            print(f"[TEST] ERROR Sending to ingestion: {send_exc}")
 
                     # Update session
                     self.update_phase()
 
                 # Discard any other type of message
-                except jsonschema.exceptions.ValidationError as v:
-                    print(f"[CLASSIFICATION SYSTEM] [PROD/EVAL] Validation error: {v}")
-                    self._error_logger.log(f"[PROD/EVAL] json validation error: {v}")
+                except jsonschema.exceptions.ValidationError as val_exc:
+                    print(f"[CLASSIFICATION SYSTEM] [PROD/EVAL] Validation error: {val_exc}")
+                    self._error_logger.log(f"[PROD/EVAL] json validation error: {val_exc}")
 
-                except Exception as e:
-                    print(f"General error: {e}")
-                    self._error_logger.log(f"General error: {e}")
+                except Exception as gen_exc:
+                    print(f"General error: {gen_exc}")
+                    self._error_logger.log(f"General error: {gen_exc}")

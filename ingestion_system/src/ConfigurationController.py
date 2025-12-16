@@ -58,7 +58,7 @@ class ConfigurationController:
             str,
             int,
             int,
-            int,
+            float,
             str,
             str,
             int,

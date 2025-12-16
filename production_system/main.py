@@ -1,7 +1,7 @@
 """ Production system starting module """
 
 import sys
-from controller.classification_system import ClassificationSystem
+from production_system.controller.classification_system import ClassificationSystem
 
 if __name__ == '__main__':
 

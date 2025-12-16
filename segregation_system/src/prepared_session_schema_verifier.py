@@ -1,6 +1,6 @@
 class PreparedSessionSchemaVerifier:
     REQUIRED_SCHEMA = {
-        "uuid": int,
+        "UUID": int,
         "label": str,
         "mean_current": (int, float),
         "mean_voltage": (int, float),

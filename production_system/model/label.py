@@ -1,6 +1,6 @@
 """ Module for defining labels """
 import jsonschema
-from model.label_type import LabelType
+from production_system.model.label_type import LabelType
 
 
 class Label:
@@ -17,8 +17,8 @@ class Label:
         "additionalProperties": False
     }
 
-    def __init__(self, UUID, label_type):
-        self._UUID = UUID
+    def __init__(self, uuid, label_type):
+        self._uuid = uuid
         self._label_type = label_type
 
     @staticmethod
@@ -35,14 +35,14 @@ class Label:
         label_type_enum = LabelType.from_string(data["type"])
 
         return Label(
-            UUID=data["UUID"],
+            uuid=data["UUID"],
             label_type=label_type_enum
         )
 
     def to_dict(self):
         """ Returns a dictionary representation of the label """
         return {
-            "UUID": self._UUID,
+            "UUID": self._uuid,
             "label": str(self._label_type)
         }
 
@@ -50,6 +50,6 @@ class Label:
         """ Returns the label type """
         return self._label_type
 
-    def get_UUID(self):
+    def get_uuid(self):
         """ Returns the UUID """
-        return self._UUID
+        return self._uuid
