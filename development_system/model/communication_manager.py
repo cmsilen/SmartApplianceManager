@@ -13,7 +13,6 @@ from pathlib import Path
 from development_system.model.communication_config import CommunicationConfig
 from development_system.utility.json_read_write import JsonReadWrite
 
-
 class CommunicationManager:
     _instance = None
 
@@ -34,8 +33,15 @@ class CommunicationManager:
 
         env_path = Path(__file__).resolve().parents[2] / "dev_sys.env"
         load_dotenv(env_path)
+
+        # for automated
         winner_job_path_from_root = os.getenv("TEST_WINNER_AUTOMATED")
         self.winner_job_path = Path(__file__).resolve().parents[2] / winner_job_path_from_root
+
+        # for non automated
+        winner_non_automated_path_root = os.getenv("WINNER_CLASSIFIER_DIRECTORY_PATH")
+        self.winner_non_automated_job_path = Path(__file__).resolve().parents[2] / winner_non_automated_path_root
+
 
     @staticmethod
     def get_instance():
@@ -83,8 +89,8 @@ class CommunicationManager:
         return True
 
      # This method is to do a python test on the orchestrator in an automated mode.
-    def send_classifier_joblib(self, uuid):
-        print("[INFO] send_classifier_joblib")
+    def send_classifier_joblib_automated(self, uuid):
+        print("[INFO] send classifier joblib")
         ip_classification_system, port_classification_system = self.communication_config.get_ip_port("production_system")
         url = f"http://{ip_classification_system}:{port_classification_system}/deploy"
 
@@ -109,31 +115,31 @@ class CommunicationManager:
             return False
 
 
-    def send_classifier_joblib_automated(self, uuid):
-        print("[INFO] send_classifier_joblib_automated")
-        ip_classification_system, port_classification_system = self.communication_config.get_ip_port("production_system")
-        url = f"http://{ip_classification_system}:{port_classification_system}/deploy"
-        base_path = os.getenv("TEST_WINNER_AUTOMATED")
-        file_path = os.path.join(base_path, f"{uuid}.joblib")
+     # This method is to do a python test on the orchestrator in non-automated mode.
+    def send_classifier_joblib_non_automated(self, uuid):
+        print("[INFO] send classifier automated_joblib")
+        ip_classification_sys, port_classification_sys = self.communication_config.get_ip_port("production_system")
+        url = f"http://{ip_classification_sys}:{port_classification_sys}/deploy"
 
-        if not os.path.exists(file_path):
+        file_path = self.winner_non_automated_job_path / f"{str(uuid).upper()}.joblib"
+        print("[DEBUG] Uploading:", file_path)
+
+        if not file_path.exists():
             raise FileNotFoundError(f"[ERROR] File not found: {file_path}")
 
         try:
             with open(file_path, 'rb') as f:
-                response = requests.post(url, files={'file': f}, timeout=5)
+                response = requests.post(url, files={'file': f}, timeout=3)
 
             if response.status_code == 200:
                 print("[INFO] WinnerClassifier deployed successfully.")
                 return True
             else:
-                print(f"[ERROR] Deployment failed ({response.status_code}): {response.text}")
+                print(f"[ERROR] Deployment failed — status {response.status_code}: {response.text}")
                 return False
-
         except requests.exceptions.RequestException as e:
             print(f"[ERROR] Request failed: {e}")
             return False
-
 
 app = CommunicationManager.get_instance().get_app()
 
@@ -146,6 +152,7 @@ def start_app():
     return {}, 200
 
 
+# The endpoint where the Calibration set arrives.
 @app.post('/learning_sets')
 def post_json():
     if request.json is None:
