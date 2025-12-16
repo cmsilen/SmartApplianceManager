@@ -50,35 +50,30 @@ class ValidationManager:
 
         max_exp = int(math.log2(hidden_neuron_range[1]))  # 128 -> 7
         min_exp = int(math.log2(hidden_neuron_range[0]))  # 4   -> 2
-        neuron_options = [2 ** i for i in range(max_exp, min_exp - 1, -1)]
+        neuron_options = [2 ** i for i in range(max_exp, min_exp - 1, -1)] # range(start, stop, step)
 
         hidden_layer_sizes_options = []
 
         for n_layers in range(hidden_layer_size_range[0], hidden_layer_size_range[1] + 1):
-            # use all possible tuples
-            layer_combinations = list(product(neuron_options, repeat=n_layers))
-            for combination in layer_combinations:
-                is_decreasing = all(
-                    combination[i] >= combination[i + 1] for i in range(len(combination) - 1)
-                )
-                if is_decreasing:
-                    hidden_layer_sizes_options.append(combination)
+            hidden_layer_sizes_options.extend(
+                self.generate_decreasing_layers(neuron_options, n_layers)
+            )
         return hidden_layer_sizes_options, num_iterations, overfitting_threshold
 
+
     def get_candidate_classifiers(self):
-
+        print("inside the get_candidate_classifiers ")
         grid_search_result, iterations_number, overfitting_threshold = self.generate_hyperparameter_options()
-
         if not grid_search_result:
             print("[WARN] No hyperparameter settings generated, skipping validation.")
             return
-
+        # setting == architecture of the model
         for index, setting in enumerate(grid_search_result):
             new_config = SMARTClassifierConfig(iterations_number, setting)
 
             self._smart_classifier.update_classifier_config(new_config)
 
-            self._smart_classifier.train_model(self._train_data["data"], self._train_data["labels"])
+            self._smart_classifier.train_model(self._train_data["data"], self._train_data["labels"]) # train every architecture model
 
             train_error = self._smart_classifier.get_error(
                 self._train_data["data"],
@@ -90,13 +85,16 @@ class ValidationManager:
                 self._validation_data["labels"]
             )
 
+
             if (validation_error - train_error) > overfitting_threshold:
+                print("The architecture with ",(index,setting), " is discarded.")
                 continue
+            print("The architecture with ", (index, setting), " is accepted.")
 
             self._smart_classifier.save_classifier("NN" + str(index))
 
             neurons = sum(setting)
-
+            # model summary
             model = {
                 "uuid": "NN" + str(index),
                 "train_error": train_error,
@@ -161,3 +159,35 @@ class ValidationManager:
         report_generator = ReportGenerator(report_type="validation",
                                            best_classifiers=self._candidate_classifiers)
         report_generator.generate_report()
+
+
+    @staticmethod
+    def generate_decreasing_layers(neuron_options, n_layers):
+        results = []
+        ValidationManager._backtrack_layers(
+            neuron_options=neuron_options,
+            n_layers=n_layers,
+            current_layers=[],
+            results=results
+        )
+        return results
+
+    @staticmethod
+    def _backtrack_layers(neuron_options, n_layers, current_layers, results):
+        # Base case: full architecture built
+        if len(current_layers) == n_layers:
+            results.append(tuple(current_layers))
+            return
+        # Enforce non-increasing constraint
+        max_allowed = current_layers[-1] if current_layers else float("inf")
+        for neurons in neuron_options:
+            if neurons <= max_allowed: # important!, the next layer can't have more neurons than the previous one.
+                current_layers.append(neurons)
+                #recursive call!
+                ValidationManager._backtrack_layers(
+                    neuron_options,
+                    n_layers,
+                    current_layers,
+                    results
+                )
+                current_layers.pop()
